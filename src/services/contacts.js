@@ -61,13 +61,13 @@ export const createContact = async (contactData) => {
 };
 
 export const deleteContact = async (contactId) => {
-  const deletedContact = await Contact.findByIdAndDelete(contactId);
+  const contact = await Contact.findByIdAndDelete(contactId);
 
-  if (!deletedContact) {
+  if (!contact) {
     throw createError(404, "Contact not found");
   }
 
-  return deletedContact;
+  return contact;
 };
 
 export const patchContact = async (contactId, updateData) => {

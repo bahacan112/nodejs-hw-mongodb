@@ -1,10 +1,9 @@
 import express from "express";
 import cors from "cors";
 import pino from "pino";
-import {
-  getContactsController,
-  getContactsIdController,
-} from "./controllers/contactsController.js";
+import router from "./routers/contacts.js";
+import errorHandler from "./middlewares/errorHandler.js";
+import notFoundHandler from "./middlewares/notFoundHandler.js";
 const logger = pino(); // Logger oluştur
 
 export const setupServer = () => {
@@ -17,15 +16,15 @@ export const setupServer = () => {
     logger.info(`${req.method} ${req.url}`);
     next();
   });
-  app.get("/contacts", getContactsController);
-  app.get("/contacts/:contactId", getContactsIdController);
-  app.use((req, res) => {
-    res.status(404).json({ message: "Not found" });
-  });
+  app.use("/contacts", router);
+
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   // Sunucuyu başlat
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
+  return app;
 };

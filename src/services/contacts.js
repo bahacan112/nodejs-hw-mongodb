@@ -1,18 +1,29 @@
 import createError from "http-errors";
 import Contact from "../db/models/Contact.js";
-export const getAllContacts = async () => {
-  console.log("📌 MongoDB'den veriler getiriliyor...");
-  const contacts = await Contact.find();
+export const getAllContacts = async (
+  page = 1,
+  perPage = 10,
+  sortBy = "name",
+  sortOrder = "asc"
+) => {
+  const skip = (page - 1) * perPage;
+  const sort = { [sortBy]: sortOrder === "desc" ? -1 : 1 };
 
-  if (!contacts.length) {
-    throw createError(404, "No contacts found.");
-  }
+  const totalItems = await Contact.countDocuments();
+  const contacts = await Contact.find().sort(sort).skip(skip).limit(perPage);
 
-  console.log("✅ Veriler başarıyla alındı!");
   return {
     status: 200,
     message: "Successfully found contacts!",
-    data: contacts,
+    data: {
+      data: contacts,
+      page,
+      perPage,
+      totalItems,
+      totalPages: Math.ceil(totalItems / perPage),
+      hasPreviousPage: page > 1,
+      hasNextPage: page * perPage < totalItems,
+    },
   };
 };
 

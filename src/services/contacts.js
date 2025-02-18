@@ -1,22 +1,33 @@
 import createError from "http-errors";
 import Contact from "../db/models/Contact.js";
-export const getAllContacts = async (
-  page = 1,
-  perPage = 10,
-  sortBy = "name",
-  sortOrder = "asc"
-) => {
+export const getAllContacts = async (userId, queryParams) => {
+  let {
+    page = 1,
+    perPage = 10,
+    sortBy = "name",
+    sortOrder = "asc",
+  } = queryParams;
+
+  // Sayısal değerlere çevir
+  page = parseInt(page);
+  perPage = parseInt(perPage);
+
+  // Sayfalama ve sıralama için ayarlar
   const skip = (page - 1) * perPage;
   const sort = { [sortBy]: sortOrder === "desc" ? -1 : 1 };
 
-  const totalItems = await Contact.countDocuments();
-  const contacts = await Contact.find().sort(sort).skip(skip).limit(perPage);
+  // Kullanıcının sadece kendi eklediği kişileri getirmesi
+  const totalItems = await Contact.countDocuments({ userId });
+  const contacts = await Contact.find({ userId })
+    .sort(sort)
+    .skip(skip)
+    .limit(perPage);
 
   return {
     status: 200,
     message: "Successfully found contacts!",
     data: {
-      data: contacts,
+      contacts, // Çift veri yapısını önledik
       page,
       perPage,
       totalItems,
@@ -46,10 +57,10 @@ export const getContactById = async (contactId) => {
     throw error; // Hata middleware tarafından yakalanacak
   }
 };
-export const createContact = async (contactData) => {
+export const createContact = async (userId, contactData) => {
   const { name, phoneNumber, email, isFavourite, contactType } = contactData;
 
-  // Zorunlu alanları kontrol et
+  // 🛑 Zorunlu alanları kontrol et
   if (!name || !phoneNumber || !contactType) {
     throw createError(
       400,
@@ -57,16 +68,15 @@ export const createContact = async (contactData) => {
     );
   }
 
-  // Yeni kişi oluştur
+  // ✅ Yeni kişi oluştururken userId ekleyelim
   const newContact = await Contact.create({
     name,
     phoneNumber,
     email,
     isFavourite: isFavourite || false,
     contactType,
+    userId, // 🛑 Kullanıcı ID ekleniyor!
   });
-
-  console.log("Yeni kişi eklendi:", newContact);
 
   return newContact;
 };

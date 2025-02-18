@@ -8,27 +8,14 @@ import {
 } from "../services/contacts.js";
 import ctrlWrapper from "../utils/ctrlWrapper.js";
 
-export const getContactsController = ctrlWrapper(async (req, res) => {
-  // 🛠 Query parametrelerini al ve sayıya çevir
-  const {
-    page = 1,
-    perPage = 10,
-    sortBy = "name",
-    sortOrder = "asc",
-  } = req.query;
-
-  const pageNumber = Number(page);
-  const perPageNumber = Number(perPage);
-
-  const response = await getAllContacts(
-    pageNumber,
-    perPageNumber,
-    sortBy,
-    sortOrder
-  );
-
-  res.status(200).json(response);
-});
+export const getContactsController = async (req, res, next) => {
+  try {
+    const response = await getAllContacts(req.user._id, req.query);
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getContactByIdController = ctrlWrapper(async (req, res, next) => {
   const { contactId } = req.params;
@@ -41,8 +28,17 @@ export const getContactByIdController = ctrlWrapper(async (req, res, next) => {
   res.status(200).json(response);
 });
 
-export const createContactController = ctrlWrapper(async (req, res) => {
-  const newContact = await createContact(req.body);
+export const createContactController = ctrlWrapper(async (req, res, next) => {
+  console.log("📩 İstek Gövdesi:", req.body); // 🛠 Debug İçin Log
+
+  if (!req.user || !req.user.id) {
+    return next(createError(401, "Unauthorized: User ID is required"));
+  }
+
+  const userId = req.user.id; // Kullanıcı ID'si doğrulamadan alınıyor
+
+  // ✅ Hatalı çağrıyı düzelttik: userId artık birinci parametre
+  const newContact = await createContact(userId, req.body);
 
   res.status(201).json({
     status: 201,

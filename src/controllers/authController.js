@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import createError from "http-errors";
 import User from "../db/models/User.js";
 import jwt from "jsonwebtoken";
@@ -11,20 +10,19 @@ export const registerUser = async (req, res, next) => {
     // Kullanıcı zaten var mı?
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return next(createError(409, "Email in use"));
+      return next(createError(409, "Email already in use"));
     }
 
-    // Şifreyi hashle
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Kullanıcıyı oluştur
-    const newUser = await User.create({
+    // Kullanıcıyı oluştur (şifre modelde hashlenecek)
+    const newUser = new User({
       name,
       email,
-      password: hashedPassword,
+      password, // Şifre modelde hashlenecek, burada hashleme yapma!
     });
 
-    // Şifreyi göstermeden döndür
+    await newUser.save(); // Model içindeki `pre("save")` middleware çalışacak
+
+    // Şifreyi göstermeden yanıtı döndür
     res.status(201).json({
       status: 201,
       message: "Successfully registered a user!",
@@ -34,6 +32,7 @@ export const registerUser = async (req, res, next) => {
     next(error);
   }
 };
+
 export const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -43,10 +42,10 @@ export const loginUser = async (req, res, next) => {
       return next(createError(401, "Invalid email or password"));
     }
 
-    // Şifre kontrolü
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Model içindeki comparePassword metodunu kullan
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return next(createError(401, "Invalid email or password"));
+      return next(createError(401, "Invalid password"));
     }
 
     // Token oluştur
@@ -78,47 +77,66 @@ export const loginUser = async (req, res, next) => {
 
     res.status(200).json({
       status: 200,
-      message: "Successfully logged in an user!",
+      message: "Successfully logged in a user!",
       data: { accessToken },
     });
   } catch (error) {
     next(error);
   }
 };
+
 export const refreshToken = async (req, res, next) => {
   try {
-    const { refreshToken } = req.cookies; // Çerezlerden token al
+    const { refreshToken } = req.cookies;
 
     if (!refreshToken) {
       return next(createError(401, "Refresh token not provided"));
     }
 
-    // Token geçerli mi?
+    // Tokenin var olup olmadığını kontrol et
     const session = await Session.findOne({ refreshToken });
     if (!session) {
       return next(createError(403, "Invalid refresh token"));
     }
 
-    // Süresi dolmuş mu?
+    // Refresh token süresi dolmuş mu?
     if (new Date() > session.refreshTokenValidUntil) {
       await Session.deleteOne({ _id: session._id });
       return next(createError(403, "Refresh token expired"));
     }
 
-    // Kullanıcıyı doğrula ve yeni access token oluştur
+    // Kullanıcıyı doğrula
     const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+
+    // **Yeni refresh token oluştur**
+    const newRefreshToken = jwt.sign(
+      { id: decoded.id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    // **Yeni access token oluştur**
     const accessToken = jwt.sign({ id: decoded.id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
 
-    // Eski oturumu sil ve yeni oturum oluştur
+    // **Eski oturumu sil ve yeni oturum oluştur**
     await Session.deleteOne({ _id: session._id });
     await Session.create({
       userId: decoded.id,
       accessToken,
-      refreshToken,
+      refreshToken: newRefreshToken,
       accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
       refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    });
+
+    // **Yeni refresh token'i çerez olarak ekleyelim**
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
 
     res.status(200).json({

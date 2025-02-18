@@ -1,5 +1,5 @@
 import createError from "http-errors";
-import User from "../models/User.js";
+import User from "../db/models/User";
 
 export const registerUser = async (userData) => {
   const { name, email, password } = userData;

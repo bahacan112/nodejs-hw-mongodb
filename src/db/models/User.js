@@ -5,29 +5,34 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "İsim Zorunludur"],
+      required: [true, "İsim zorunludur"],
     },
     email: {
       type: String,
       trim: true,
       lowercase: true,
       unique: true,
+      required: [true, "Email zorunludur"],
     },
     password: {
       type: String,
-      required: [true, "Şifre Girmek ZOrunludur"],
+      required: [true, "Şifre girmek zorunludur"],
     },
   },
-
   { timestamps: true }
 );
+
+// Kullanıcı kaydedilmeden önce şifreyi hashle
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
   next();
 });
+
+// Şifreyi karşılaştırma fonksiyonu
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
 const User = mongoose.model("User", userSchema);

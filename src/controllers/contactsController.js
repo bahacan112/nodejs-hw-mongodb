@@ -9,7 +9,24 @@ import {
 import ctrlWrapper from "../utils/ctrlWrapper.js";
 
 export const getContactsController = ctrlWrapper(async (req, res) => {
-  const response = await getAllContacts();
+  // 🛠 Query parametrelerini al ve sayıya çevir
+  const {
+    page = 1,
+    perPage = 10,
+    sortBy = "name",
+    sortOrder = "asc",
+  } = req.query;
+
+  const pageNumber = Number(page);
+  const perPageNumber = Number(perPage);
+
+  const response = await getAllContacts(
+    pageNumber,
+    perPageNumber,
+    sortBy,
+    sortOrder
+  );
+
   res.status(200).json(response);
 });
 

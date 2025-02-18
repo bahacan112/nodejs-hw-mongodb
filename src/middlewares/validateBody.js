@@ -1,18 +1,15 @@
 import createError from "http-errors";
 
-const validateBody = (schema) => {
-  return (req, res, next) => {
-    const { error } = schema.validate(req.body, { abortEarly: false });
+export const validateBody = (req, res, next) => {
+  const { email, password, token } = req.body;
 
-    if (error) {
-      const errorMessage = error.details
-        .map((detail) => detail.message)
-        .join(", ");
-      return next(createError(400, `Validation error: ${errorMessage}`));
-    }
+  if (req.path === "/send-reset-email" && !email) {
+    return next(createError(400, "Email is required."));
+  }
 
-    next();
-  };
+  if (req.path === "/reset-pwd" && (!token || !password)) {
+    return next(createError(400, "Token and new password are required."));
+  }
+
+  next();
 };
-
-export default validateBody;

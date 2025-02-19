@@ -1,5 +1,10 @@
 import createError from "http-errors";
 import Contact from "../db/models/Contact.js";
+import { uploadImage } from "./cloudinary/uploadImage.js";
+
+/**
+ * 📌 Tüm Kişileri Getir (Sayfalama ve Sıralama ile)
+ */
 export const getAllContacts = async (userId, queryParams) => {
   let {
     page = 1,
@@ -27,7 +32,7 @@ export const getAllContacts = async (userId, queryParams) => {
     status: 200,
     message: "Successfully found contacts!",
     data: {
-      contacts, // Çift veri yapısını önledik
+      contacts,
       page,
       perPage,
       totalItems,
@@ -38,6 +43,9 @@ export const getAllContacts = async (userId, queryParams) => {
   };
 };
 
+/**
+ * 📌 ID'ye Göre Kişi Getir
+ */
 export const getContactById = async (contactId) => {
   try {
     console.log(`${contactId} ID ile kişi aranıyor...`);
@@ -57,8 +65,15 @@ export const getContactById = async (contactId) => {
     throw error; // Hata middleware tarafından yakalanacak
   }
 };
-export const createContact = async (userId, contactData) => {
+
+/**
+ * 📌 Yeni Kişi Oluştur (Fotoğraf Yükleme Destekli)
+ */
+export const createContact = async (userId, contactData, file) => {
   const { name, phoneNumber, email, isFavourite, contactType } = contactData;
+
+  // 🛑 Eğer fotoğraf yüklenmişse Cloudinary'ye yükle
+  const photoUrl = file ? await uploadImage(file.path) : null;
 
   // 🛑 Zorunlu alanları kontrol et
   if (!name || !phoneNumber || !contactType) {
@@ -75,23 +90,22 @@ export const createContact = async (userId, contactData) => {
     email,
     isFavourite: isFavourite || false,
     contactType,
-    userId, // 🛑 Kullanıcı ID ekleniyor!
+    userId,
+    photo: photoUrl, // 📌 Fotoğraf URL'si eklendi
   });
 
   return newContact;
 };
 
-export const deleteContact = async (contactId) => {
-  const contact = await Contact.findByIdAndDelete(contactId);
-
-  if (!contact) {
-    throw createError(404, "Contact not found");
+/**
+ * 📌 Kişiyi Güncelle (Fotoğraf Güncelleme Destekli)
+ */
+export const patchContact = async (contactId, updateData, file) => {
+  // 🛑 Eğer yeni bir fotoğraf yüklendiyse Cloudinary'ye yükle
+  if (file) {
+    updateData.photo = await uploadImage(file.path);
   }
 
-  return contact;
-};
-
-export const patchContact = async (contactId, updateData) => {
   const updatedContact = await Contact.findByIdAndUpdate(
     contactId,
     updateData,
@@ -103,4 +117,17 @@ export const patchContact = async (contactId, updateData) => {
   }
 
   return updatedContact;
+};
+
+/**
+ * 📌 Kişiyi Sil
+ */
+export const deleteContact = async (contactId) => {
+  const contact = await Contact.findByIdAndDelete(contactId);
+
+  if (!contact) {
+    throw createError(404, "Contact not found");
+  }
+
+  return contact;
 };

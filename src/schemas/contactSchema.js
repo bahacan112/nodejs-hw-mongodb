@@ -6,6 +6,7 @@ export const contactSchema = Joi.object({
   email: Joi.string().email().optional(),
   isFavourite: Joi.boolean().optional(),
   contactType: Joi.string().valid("work", "home", "personal").required(),
+  photo: Joi.string().uri().optional(), // 📌 Fotoğraf URL'si için Joi validation eklendi
 });
 
 export const contactUpdateSchema = Joi.object({
@@ -14,4 +15,5 @@ export const contactUpdateSchema = Joi.object({
   email: Joi.string().email().optional(),
   isFavourite: Joi.boolean().optional(),
   contactType: Joi.string().valid("work", "home", "personal").optional(),
+  photo: Joi.string().uri().optional(), // 📌 Güncelleme sırasında fotoğraf eklenebilir
 }).min(1); // Güncelleme için en az bir alan zorunlu!

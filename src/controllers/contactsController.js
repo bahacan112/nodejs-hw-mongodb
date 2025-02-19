@@ -4,10 +4,13 @@ import {
   getContactById,
   createContact,
   patchContact,
-  deleteContact, // ✅ deleteContact servisinin var olduğundan emin ol
+  deleteContact,
 } from "../services/contacts.js";
 import ctrlWrapper from "../utils/ctrlWrapper.js";
 
+/**
+ * 📌 Tüm Kişileri Getir
+ */
 export const getContactsController = async (req, res, next) => {
   try {
     const response = await getAllContacts(req.user._id, req.query);
@@ -17,6 +20,9 @@ export const getContactsController = async (req, res, next) => {
   }
 };
 
+/**
+ * 📌 ID'ye Göre Kişi Getir
+ */
 export const getContactByIdController = ctrlWrapper(async (req, res, next) => {
   const { contactId } = req.params;
   const response = await getContactById(contactId);
@@ -28,17 +34,15 @@ export const getContactByIdController = ctrlWrapper(async (req, res, next) => {
   res.status(200).json(response);
 });
 
+/**
+ * 📌 Yeni Kişi Ekle (Fotoğraf Yükleme Destekli)
+ */
 export const createContactController = ctrlWrapper(async (req, res, next) => {
-  console.log("📩 İstek Gövdesi:", req.body); // 🛠 Debug İçin Log
+  console.log("📩 İstek Gövdesi:", req.body);
+  console.log("📷 Yüklenen Dosya:", req.file);
 
-  if (!req.user || !req.user.id) {
-    return next(createError(401, "Unauthorized: User ID is required"));
-  }
-
-  const userId = req.user.id; // Kullanıcı ID'si doğrulamadan alınıyor
-
-  // ✅ Hatalı çağrıyı düzelttik: userId artık birinci parametre
-  const newContact = await createContact(userId, req.body);
+  const userId = req.user.id;
+  const newContact = await createContact(userId, req.body, req.file);
 
   res.status(201).json({
     status: 201,
@@ -47,10 +51,15 @@ export const createContactController = ctrlWrapper(async (req, res, next) => {
   });
 });
 
-// 📌 PATCH (Güncelleme) Kontrolörü
+/**
+ * 📌 Kişiyi Güncelle (Fotoğraf Güncelleme Destekli)
+ */
 export const patchContactController = ctrlWrapper(async (req, res, next) => {
+  console.log("📩 Güncelleme İsteği:", req.body);
+  console.log("📷 Yeni Yüklenen Dosya:", req.file);
+
   const { contactId } = req.params;
-  const updatedContact = await patchContact(contactId, req.body);
+  const updatedContact = await patchContact(contactId, req.body, req.file);
 
   if (!updatedContact) {
     return next(createError(404, "Contact not found"));
@@ -58,12 +67,14 @@ export const patchContactController = ctrlWrapper(async (req, res, next) => {
 
   res.status(200).json({
     status: 200,
-    message: "Successfully patched a contact!",
+    message: "Successfully updated the contact!",
     data: updatedContact,
   });
 });
 
-// 📌 DELETE (Silme) Kontrolörü
+/**
+ * 📌 Kişiyi Sil
+ */
 export const deleteContactController = ctrlWrapper(async (req, res, next) => {
   const { contactId } = req.params;
   const deletedContact = await deleteContact(contactId);

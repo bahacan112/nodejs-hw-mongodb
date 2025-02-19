@@ -17,9 +17,11 @@ const contactSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     }, // Kullanıcı bağlantısı
+    photo: { type: String, required: false }, // 📌 Cloudinary'den gelen fotoğraf URL'si
   },
   { timestamps: true }
 );
+
 const Contact = mongoose.model("Contact", contactSchema, "contacts");
 
 export default Contact;

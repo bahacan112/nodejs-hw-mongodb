@@ -25,7 +25,7 @@ export const registerUser = async (req, res, next) => {
     // Şifreyi göstermeden yanıtı döndür
     res.status(201).json({
       status: 201,
-      message: "Successfully registered a user!",
+      message: " Successfully registered a user!",
       data: { id: newUser._id, name: newUser.name, email: newUser.email },
     });
   } catch (error) {

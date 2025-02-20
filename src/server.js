@@ -17,8 +17,11 @@ export const setupServer = () => {
 
   app.use(
     cors({
-      origin: "http://localhost:3000", // Frontend'in URL'sini doğru girin
-      credentials: true, // Çerezlerin gönderilmesini sağlar
+      origin: [
+        "http://localhost:3000",
+        "https://hw7-swagger-xrvk.onrender.com",
+      ],
+      credentials: true,
     })
   );
   app.use(express.json());

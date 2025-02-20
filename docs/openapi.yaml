@@ -5,9 +5,10 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost:3000/api
+  - url: http://localhost:3000
     description: Yerel Geliştirme Sunucusu
-
+  - url: https://hw7-swagger-xrvk.onrender.com
+    description: Render Üzerinde Çalışan API Sunucusu
 security:
   - bearerAuth: []
 

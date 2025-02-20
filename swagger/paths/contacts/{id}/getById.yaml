@@ -1,0 +1,30 @@
+tags:
+  - Contacts
+summary: Belirli bir kişiyi getir
+operationId: getContactById
+description: Verilen ID'ye sahip bir kişiyi getirir.
+security:
+  - bearerAuth: []
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Aranan kişinin ID'si
+    schema:
+      type: string
+responses:
+  "200":
+    description: Başarıyla kişi getirildi
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+  "404":
+    description: Kişi bulunamadı

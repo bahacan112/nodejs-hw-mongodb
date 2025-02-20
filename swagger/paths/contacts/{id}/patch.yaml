@@ -1,0 +1,32 @@
+tags:
+  - Contacts
+summary: Kişiyi güncelle
+operationId: updateContact
+description: Belirtilen ID'ye sahip kişinin bilgilerini günceller.
+security:
+  - bearerAuth: []
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Güncellenecek kişinin ID'si
+    schema:
+      type: string
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          name:
+            type: string
+          email:
+            type: string
+responses:
+  "200":
+    description: Kişi başarıyla güncellendi
+  "404":
+    description: Kişi bulunamadı
+  "400":
+    description: Geçersiz giriş verileri

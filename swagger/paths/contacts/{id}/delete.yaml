@@ -1,0 +1,19 @@
+tags:
+  - Contacts
+summary: Kişiyi sil
+operationId: deleteContact
+description: Belirtilen ID'ye sahip kişiyi sistemden siler.
+security:
+  - bearerAuth: []
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Silinecek kişinin ID'si
+    schema:
+      type: string
+responses:
+  "204":
+    description: Kişi başarıyla silindi
+  "404":
+    description: Kişi bulunamadı

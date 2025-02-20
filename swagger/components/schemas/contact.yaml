@@ -1,0 +1,35 @@
+type: object
+properties:
+  _id:
+    type: string
+    example: "67b5aa603770f74827f97240"
+  name:
+    type: string
+    example: "Resimli Adam"
+  phoneNumber:
+    type: string
+    example: "123-456-7890"
+  email:
+    type: string
+    example: "resimli@gmail.com"
+  isFavourite:
+    type: boolean
+    example: false
+  contactType:
+    type: string
+    example: "home"
+  userId:
+    type: string
+    example: "67b49bfa2695653c3ed186b2"
+  photo:
+    type: string
+    format: uri
+    example: "https://res.cloudinary.com/dnwonmg3a/image/upload/v1739959480/contacts/cxuwsrqpgfiixts3d5sk.jpg"
+  createdAt:
+    type: string
+    format: date-time
+    example: "2025-02-19T09:54:40.832Z"
+  updatedAt:
+    type: string
+    format: date-time
+    example: "2025-02-19T10:04:31.263Z"

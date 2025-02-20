@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Contacts API
+  description: Kişileri yönetmek için API dokümantasyonu
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Yerel Geliştirme Sunucusu
+
+security:
+  - bearerAuth: []
+
+paths:
+  /contacts:
+    get:
+      summary: Tüm kişileri getir
+      description: Kayıtlı tüm kişilerin listesini döndürür.
+      operationId: getAllContacts
+      tags:
+        - Contacts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Başarılı istek, kişilerin listesi döndürülür.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contact"
+    post:
+      summary: Yeni kişi ekle
+      description: Sisteme yeni bir kişi ekler.
+      operationId: addContact
+      tags:
+        - Contacts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Resimli Adam"
+                phoneNumber:
+                  type: string
+                  example: "123-456-7890"
+                email:
+                  type: string
+                  example: "resimli@gmail.com"
+                isFavourite:
+                  type: boolean
+                  example: false
+                contactType:
+                  type: string
+                  example: "home"
+                userId:
+                  type: string
+                  example: "67b49bfa2695653c3ed186b2"
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Kişi başarıyla eklendi.
+        "400":
+          description: Geçersiz giriş verisi.
+
+  /contacts/{id}:
+    get:
+      summary: Belirli bir kişiyi getir
+      description: ID'ye göre tek bir kişi döndürür.
+      operationId: getContactById
+      tags:
+        - Contacts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Kişinin benzersiz kimliği
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Başarılı istek, kişi bilgileri döndürülür.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "404":
+          description: Kişi bulunamadı.
+
+    put:
+      summary: Kişiyi güncelle
+      description: ID'ye göre bir kişinin bilgilerini günceller.
+      operationId: updateContactById
+      tags:
+        - Contacts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Güncellenecek kişinin kimliği
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contact"
+      responses:
+        "200":
+          description: Kişi başarıyla güncellendi.
+        "400":
+          description: Geçersiz giriş verisi.
+        "404":
+          description: Kişi bulunamadı.
+
+    delete:
+      summary: Kişiyi sil
+      description: ID'ye göre bir kişiyi sistemden siler.
+      operationId: deleteContactById
+      tags:
+        - Contacts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Silinecek kişinin kimliği
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Kişi başarıyla silindi.
+        "404":
+          description: Kişi bulunamadı.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Contact:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "67b5aa603770f74827f97240"
+        name:
+          type: string
+          example: "Resimli Adam"
+        phoneNumber:
+          type: string
+          example: "123-456-7890"
+        email:
+          type: string
+          example: "resimli@gmail.com"
+        isFavourite:
+          type: boolean
+          example: false
+        contactType:
+          type: string
+          example: "home"
+        userId:
+          type: string
+          example: "67b49bfa2695653c3ed186b2"
+        photo:
+          type: string
+          format: uri
+          example: "https://res.cloudinary.com/dnwonmg3a/image/upload/v1739959480/contacts/cxuwsrqpgfiixts3d5sk.jpg"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-02-19T09:54:40.832Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-02-19T10:04:31.263Z"
